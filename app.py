@@ -1,3 +1,4 @@
+import json
 from flask import Flask, jsonify, request
 import Levenshtein
 import flight_library
@@ -56,6 +57,19 @@ def get_restaurant_by_name():
             levenshtein_distance = current_distance
 
     return jsonify(restaurant_by_name)
+
+@app.route("/get_restaurant_by_category")
+def get_restaurant_by_category():
+    with open('restaurants.json') as data:
+        restaurants = json.load(data)
+    restaurant_by_category = []
+    category_name = request.args.get('restaurant_category')
+
+    for restaurant in restaurants:
+        if restaurant['RESTAURANT_CATEGORY'] == category_name:
+            restaurant_by_category.append(restaurant)
+
+    return jsonify(restaurant_by_category)
 
 # API for fetching facility
 ################################################################################
