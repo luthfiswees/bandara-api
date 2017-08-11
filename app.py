@@ -33,7 +33,14 @@ def get_flight_by_flight_number():
         if flight['FLIGHT_NO'] == request.args.get('flight_number'):
             flights_by_flight_number = flight
 
-    return jsonify(flights_by_flight_number)
+    flight_info = {}
+    if flights_by_flight_number == {}:
+        flight_info['error'] = "yes"
+    else:
+        flight_info['error'] = "no"
+    flight_info['data'] = flights_by_flight_number
+
+    return jsonify(flight_info)
 
 # API for fetching restaurant
 ################################################################################
