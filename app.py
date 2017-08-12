@@ -15,39 +15,39 @@ tz = timezone('Asia/Jakarta')
 
 # Function for scheduler
 ################################################################################
-sched = BackgroundScheduler()
-sched.start()
-atexit.register(lambda: sched.shutdown())
-
-def cetak_teks(teks):
-    print("kentil")
-
-def schedule_task(time_year, time_month, time_day, time_hour, time_minute):
-    exec_date = tz.localize(datetime(time_year, time_month, time_day, time_hour, time_minute, 0))
-    one_hour_notice = exec_date - timedelta(minutes=90)
-    day_notice = exec_date - timedelta(days=1)
-
-    # One day reminder and one hour and a half reminder
-    sched.add_job(cetak_teks, 'date', run_date=one_hour_notice, args=['One Hour Reminder'])
-    sched.add_job(cetak_teks, 'date', run_date=day_notice, args=['Previous Day Reminder'])
-
-@app.route("/schedule_reminder")
-def schedule_reminder():
-    time_year = int(request.args.get('year'))
-    time_month = int(request.args.get('month'))
-    time_day = int(request.args.get('day'))
-    time_hour = int(request.args.get('hour'))
-    time_minute = int(request.args.get('minute'))
-
-    response = {}
-    try:
-        schedule_task(time_year, time_month, time_day, time_hour, time_minute)
-        response['error'] = 'no'
-        return jsonify(response)
-    except Exception as e:
-        print e
-        response['error'] = 'yes'
-        return jsonify(response)
+# sched = BackgroundScheduler()
+# sched.start()
+# atexit.register(lambda: sched.shutdown())
+#
+# def cetak_teks(teks):
+#     print("kentil")
+#
+# def schedule_task(time_year, time_month, time_day, time_hour, time_minute):
+#     exec_date = tz.localize(datetime(time_year, time_month, time_day, time_hour, time_minute, 0))
+#     one_hour_notice = exec_date - timedelta(minutes=90)
+#     day_notice = exec_date - timedelta(days=1)
+#
+#     # One day reminder and one hour and a half reminder
+#     sched.add_job(cetak_teks, 'date', run_date=one_hour_notice, args=['One Hour Reminder'])
+#     sched.add_job(cetak_teks, 'date', run_date=day_notice, args=['Previous Day Reminder'])
+#
+# @app.route("/schedule_reminder")
+# def schedule_reminder():
+#     time_year = int(request.args.get('year'))
+#     time_month = int(request.args.get('month'))
+#     time_day = int(request.args.get('day'))
+#     time_hour = int(request.args.get('hour'))
+#     time_minute = int(request.args.get('minute'))
+#
+#     response = {}
+#     try:
+#         schedule_task(time_year, time_month, time_day, time_hour, time_minute)
+#         response['error'] = 'no'
+#         return jsonify(response)
+#     except Exception as e:
+#         print e
+#         response['error'] = 'yes'
+#         return jsonify(response)
 
 # API for fetching flight
 ################################################################################
