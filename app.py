@@ -1,5 +1,9 @@
 import json, re, cgi
 from flask import Flask, jsonify, request
+from datetime import datetime, timedelta
+from apscheduler.schedulers.background import BackgroundScheduler
+from pytz import timezone
+import atexit
 import Levenshtein
 import flight_library
 import facility_library
@@ -7,6 +11,43 @@ import baggage_library
 
 app = Flask(__name__)
 tag_re = re.compile(r'(<!--.*?-->|<[^>]*>)')
+tz = timezone('Asia/Jakarta')
+
+# Function for scheduler
+################################################################################
+sched = BackgroundScheduler()
+sched.start()
+atexit.register(lambda: sched.shutdown())
+
+def cetak_teks(teks):
+    print "kentil"
+
+def schedule_task(time_year, time_month, time_day, time_hour, time_minute):
+    exec_date = tz.localize(datetime(time_year, time_month, time_day, time_hour, time_minute, 0))
+    one_hour_notice = exec_date - timedelta(minutes=90)
+    day_notice = exec_date - timedelta(days=1)
+
+    # One day reminder and one hour and a half reminder
+    sched.add_job(cetak_teks, 'date', run_date=one_hour_notice, args=['One Hour Reminder'])
+    sched.add_job(cetak_teks, 'date', run_date=day_notice, args=['Previous Day Reminder'])
+
+@app.route("/schedule_reminder")
+def schedule_reminder():
+    time_year = int(request.args.get('year'))
+    time_month = int(request.args.get('month'))
+    time_day = int(request.args.get('day'))
+    time_hour = int(request.args.get('hour'))
+    time_minute = int(request.args.get('minute'))
+
+    response = {}
+    try:
+        schedule_task(time_year, time_month, time_day, time_hour, time_minute)
+        response['error'] = 'no'
+        return jsonify(response)
+    except Exception as e:
+        print e
+        response['error'] = 'yes'
+        return jsonify(response)
 
 # API for fetching flight
 ################################################################################
@@ -33,13 +74,120 @@ def get_flight_by_flight_number():
     for flight in flights:
         if flight['FLIGHT_NO'] == request.args.get('flight_number'):
             flights_by_flight_number = flight
+            break
 
     flight_info = {}
+    flight_info['data'] = flights_by_flight_number
     if flights_by_flight_number == {}:
         flight_info['error'] = "yes"
     else:
         flight_info['error'] = "no"
-    flight_info['data'] = flights_by_flight_number
+
+        got  = flight['GATE_OPEN_TIME']
+        gct  = flight['GATE_CLOSE_TIME']
+        bcot = flight['BAGGAGE_CLAIM_OPEN_TIME']
+        bcct = flight['BAGGAGE_CLAIM_CLOSE_TIME']
+
+        got_day = None
+        got_month = None
+        got_year = None
+        got_hour = None
+        got_minute = None
+
+        gct_day = None
+        gct_month = None
+        gct_year = None
+        gct_hour = None
+        gct_minute = None
+
+        bcot_day = None
+        bcot_month = None
+        bcot_year = None
+        bcot_hour = None
+        bcot_minute = None
+
+        bcct_day = None
+        bcct_month = None
+        bcct_year = None
+        bcct_hour = None
+        bcct_minute = None
+
+        if got != None:
+            got_splits = got.split(" ")
+            got_date = got_splits[0]
+            got_clock = got_splits[1]
+
+            got_date_splits = got_date.split("-")
+            got_year = got_date_splits[0]
+            got_month = got_date_splits[1]
+            got_day = got_date_splits[2]
+
+            got_clock_splits = got_clock.split(":")
+            got_hour = got_clock_splits[0]
+            got_minute = got_clock_splits[1]
+        if gct != None:
+            gct_splits = gct.split(" ")
+            gct_date = gct_splits[0]
+            gct_clock = gct_splits[1]
+
+            gct_date_splits = gct_date.split("-")
+            gct_year = gct_date_splits[0]
+            gct_month = gct_date_splits[1]
+            gct_day = gct_date_splits[2]
+
+            gct_clock_splits = gct_clock.split(":")
+            gct_hour = gct_clock_splits[0]
+            gct_minute = gct_clock_splits[1]
+        if bcot != None:
+            bcot_splits = bcot.split(" ")
+            bcot_date = bcot_splits[0]
+            bcot_clock = bcot_splits[1]
+
+            bcot_date_splits = bcot_date.split("-")
+            bcot_year = bcot_date_splits[0]
+            bcot_month = bcot_date_splits[1]
+            bcot_day = bcot_date_splits[2]
+
+            bcot_clock_splits = bcot_clock.split(":")
+            bcot_hour = bcot_clock_splits[0]
+            bcot_minute = bcot_clock_splits[1]
+        if bcct != None:
+            bcct_splits = bcct.split(" ")
+            bcct_date = bcct_splits[0]
+            bcct_clock = bcct_splits[1]
+
+            bcct_date_splits = bcct_date.split("-")
+            bcct_year = bcct_date_splits[0]
+            bcct_month = bcct_date_splits[1]
+            bcct_day = bcct_date_splits[2]
+
+            bcct_clock_splits = bcct_clock.split(":")
+            bcct_hour = bcct_clock_splits[0]
+            bcct_minute = bcct_clock_splits[1]
+
+        flight_info['data']['got_day'] = got_day
+        flight_info['data']['got_month'] = got_month
+        flight_info['data']['got_year'] = got_year
+        flight_info['data']['got_hour'] = got_hour
+        flight_info['data']['got_minute'] = got_minute
+
+        flight_info['data']['gct_day'] = gct_day
+        flight_info['data']['gct_month'] = gct_month
+        flight_info['data']['gct_year'] = gct_year
+        flight_info['data']['gct_hour'] = gct_hour
+        flight_info['data']['gct_minute'] = gct_minute
+
+        flight_info['data']['bcot_day'] = bcot_day
+        flight_info['data']['bcot_month'] = bcot_month
+        flight_info['data']['bcot_year'] = bcot_year
+        flight_info['data']['bcot_hour'] = bcot_hour
+        flight_info['data']['bcot_minute'] = bcot_minute
+
+        flight_info['data']['bcct_day'] = bcct_day
+        flight_info['data']['bcct_month'] = bcct_month
+        flight_info['data']['bcct_year'] = bcct_year
+        flight_info['data']['bcct_hour'] = bcct_hour
+        flight_info['data']['bcct_minute'] = bcct_minute
 
     return jsonify(flight_info)
 
