@@ -1,4 +1,4 @@
-import json
+import json, re, cgi
 from flask import Flask, jsonify, request
 import Levenshtein
 import flight_library
@@ -6,6 +6,7 @@ import facility_library
 import baggage_library
 
 app = Flask(__name__)
+tag_re = re.compile(r'(<!--.*?-->|<[^>]*>)')
 
 # API for fetching flight
 ################################################################################
@@ -74,7 +75,15 @@ def get_restaurant_by_category():
 
     for restaurant in restaurants:
         if restaurant['RESTAURANT_CATEGORY'] == category_name:
+            temp = restaurant['OBJECT_ADDRESS']
+            re.sub('<br />', '\n', temp)
+            no_tags = tag_re.sub('', temp)
+            ready = cgi.escape(no_tags)
+
+            restaurant['OBJECT_ADDRESS'] = ready
             restaurant_by_category.append(restaurant)
+        if len(restaurant_by_category) > 3:
+            break
 
     return jsonify(restaurant_by_category)
 
