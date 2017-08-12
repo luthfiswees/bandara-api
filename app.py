@@ -20,7 +20,7 @@ sched.start()
 atexit.register(lambda: sched.shutdown())
 
 def cetak_teks(teks):
-    print "kentil"
+    print("kentil")
 
 def schedule_task(time_year, time_month, time_day, time_hour, time_minute):
     exec_date = tz.localize(datetime(time_year, time_month, time_day, time_hour, time_minute, 0))
