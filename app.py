@@ -83,10 +83,17 @@ def get_flight_by_flight_number():
     else:
         flight_info['error'] = "no"
 
+        sch  = flight['SCHEDULED']
         got  = flight['GATE_OPEN_TIME']
         gct  = flight['GATE_CLOSE_TIME']
         bcot = flight['BAGGAGE_CLAIM_OPEN_TIME']
         bcct = flight['BAGGAGE_CLAIM_CLOSE_TIME']
+
+        sch_day = None
+        sch_month = None
+        sch_year = None
+        sch_hour = None
+        sch_minute = None
 
         got_day = None
         got_month = None
@@ -112,6 +119,19 @@ def get_flight_by_flight_number():
         bcct_hour = None
         bcct_minute = None
 
+        if sch != None:
+            sch_splits = sch.split(" ")
+            sch_date = sch_splits[0]
+            sch_clock = sch_splits[1]
+
+            sch_date_splits = sch_date.split("-")
+            sch_year = sch_date_splits[0]
+            sch_month = sch_date_splits[1]
+            sch_day = sch_date_splits[2]
+
+            sch_clock_splits = sch_clock.split(":")
+            sch_hour = sch_clock_splits[0]
+            sch_minute = sch_clock_splits[1]
         if got != None:
             got_splits = got.split(" ")
             got_date = got_splits[0]
@@ -164,6 +184,12 @@ def get_flight_by_flight_number():
             bcct_clock_splits = bcct_clock.split(":")
             bcct_hour = bcct_clock_splits[0]
             bcct_minute = bcct_clock_splits[1]
+
+        flight_info['data']['sch_day'] = sch_day
+        flight_info['data']['sch_month'] = sch_month
+        flight_info['data']['sch_year'] = sch_year
+        flight_info['data']['sch_hour'] = sch_hour
+        flight_info['data']['sch_minute'] = sch_minute
 
         flight_info['data']['got_day'] = got_day
         flight_info['data']['got_month'] = got_month
